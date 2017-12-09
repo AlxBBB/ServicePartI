@@ -1,6 +1,11 @@
 package main;
 
+import accounts.AccountService;
+import accounts.UserProfile;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import servlets.SignInServlet;
@@ -11,14 +16,24 @@ import servlets.SignUpServlet;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        SignInServlet signInServlet=new SignInServlet();
-        SignUpServlet signUpServlet=new SignUpServlet();
+        AccountService accountService = new AccountService();
 
-        Server server=new Server(8080);
+        SignInServlet signInServlet=new SignInServlet(accountService);
+        SignUpServlet signUpServlet=new SignUpServlet(accountService);
+
         ServletContextHandler context=new ServletContextHandler(ServletContextHandler.SESSIONS);
-        server.setHandler(context);
         context.addServlet(new ServletHolder(signInServlet),"/signin");
         context.addServlet(new ServletHolder(signUpServlet),"/signup");
+
+        ResourceHandler resource_handler = new ResourceHandler();
+        resource_handler.setResourceBase("web");
+
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[]{resource_handler, context});
+
+        Server server = new Server(8080);
+        server.setHandler(handlers);
+
         server.start();
         System.out.println("Server started");
         server.join();
