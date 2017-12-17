@@ -1,8 +1,8 @@
 package servlets;
 
 import accounts.AccountService;
-import accounts.UserProfile;
-import com.google.gson.Gson;
+import dbService.DBException;
+import dbService.dataSet.User;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,11 +30,15 @@ public class SignUpServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-        
-        UserProfile profile=new UserProfile(login,password,login);
-        accountService.addNewUser(profile);
 
-        accountService.addSession(request.getSession().getId(), profile);
-        response.setStatus(HttpServletResponse.SC_OK);
+        User profile = new User(login, password);
+        try {
+            accountService.addNewUser(profile);
+
+            accountService.addSession(request.getSession().getId(), profile);
+            response.setStatus(HttpServletResponse.SC_OK);
+        } catch (DBException e) {
+            e.printStackTrace();
+        }
     }
 }
